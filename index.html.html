@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OperatorAI — Smart HMI | ABB Accelerator 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c0f;
+  --bg2: #0f1217;
+  --bg3: #141820;
+  --bg4: #1a2030;
+  --border: #1e2535;
+  --border2: #252d40;
+  --text: #e8eaf0;
+  --text2: #8892a4;
+  --text3: #4a5568;
+  --accent: #e8490f;
+  --accent2: #ff6b35;
+  --accent-glow: rgba(232,73,15,0.15);
+  --green: #22c55e;
+  --green-dim: rgba(34,197,94,0.12);
+  --yellow: #f59e0b;
+  --yellow-dim: rgba(245,158,11,0.12);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --cyan: #06b6d4;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'Inter', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px;
+  height: 56px;
+  background: rgba(10,12,15,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent2);
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-logo::before {
+  content: '●';
+  font-size: 8px;
+  color: var(--green);
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.nav-links { display: flex; gap: 32px; }
+.nav-links a {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.1em; color: var(--text2); text-decoration: none;
+  text-transform: uppercase; transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--accent2); }
+.nav-badge {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--accent);
+  border: 1px solid var(--accent); padding: 3px 10px;
+  text-transform: uppercase;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative; min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 40px 60px;
+  overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(30,37,53,0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,37,53,0.4) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black, transparent);
+}
+.hero-glow {
+  position: absolute; top: 30%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 300px;
+  background: radial-gradient(ellipse, rgba(232,73,15,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-content { position: relative; text-align: center; max-width: 900px; }
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.2em; color: var(--accent2); text-transform: uppercase;
+  margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: ''; flex: 1; max-width: 60px; height: 1px; background: var(--border2);
+}
+h1 {
+  font-family: var(--display); font-size: clamp(42px, 7vw, 88px);
+  font-weight: 800; line-height: 1.0; letter-spacing: -0.03em;
+  margin-bottom: 24px;
+}
+h1 span { color: var(--accent2); }
+.hero-sub {
+  font-size: 17px; color: var(--text2); max-width: 560px; margin: 0 auto 48px;
+  font-weight: 300; line-height: 1.7;
+}
+.hero-cta { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--accent); color: white;
+  padding: 14px 32px; font-family: var(--mono); font-size: 12px;
+  font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  border: none; cursor: pointer; text-decoration: none;
+  transition: all 0.2s; display: inline-block;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
+.btn-secondary {
+  background: transparent; color: var(--text2);
+  padding: 14px 32px; font-family: var(--mono); font-size: 12px;
+  font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid var(--border2); cursor: pointer; text-decoration: none;
+  transition: all 0.2s; display: inline-block;
+}
+.btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+
+/* ── STAT STRIP ── */
+.stats {
+  display: flex; justify-content: center; gap: 0;
+  margin-top: 64px; border: 1px solid var(--border);
+  background: var(--bg2); overflow: hidden;
+}
+.stat {
+  padding: 20px 40px; text-align: center;
+  border-right: 1px solid var(--border);
+  flex: 1; max-width: 220px;
+}
+.stat:last-child { border-right: none; }
+.stat-val {
+  font-family: var(--display); font-size: 32px; font-weight: 800;
+  color: var(--accent2); line-height: 1;
+}
+.stat-label { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+/* ── SECTIONS ── */
+section { position: relative; z-index: 1; }
+.section-header { text-align: center; margin-bottom: 60px; }
+.section-tag {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase;
+  margin-bottom: 16px; display: block;
+}
+h2 {
+  font-family: var(--display); font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px;
+}
+.section-desc { color: var(--text2); font-size: 15px; max-width: 520px; margin: 0 auto; }
+
+/* ── PROBLEM SECTION ── */
+.problem-section {
+  padding: 100px 60px;
+  border-top: 1px solid var(--border);
+}
+.problem-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  max-width: 1100px; margin: 0 auto;
+}
+.problem-card {
+  background: var(--bg2); padding: 36px;
+  border: 1px solid var(--border);
+  transition: border-color 0.3s;
+}
+.problem-card:hover { border-color: var(--border2); }
+.problem-icon {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--accent); letter-spacing: 0.1em;
+  margin-bottom: 16px; display: block;
+}
+.problem-card h3 {
+  font-family: var(--display); font-size: 20px; font-weight: 700;
+  margin-bottom: 12px; color: var(--text);
+}
+.problem-card p { color: var(--text2); font-size: 13.5px; line-height: 1.7; }
+
+/* ── CASCADE VISUALIZATION ── */
+.cascade-section {
+  padding: 100px 60px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.cascade-demo {
+  max-width: 900px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 80px 1fr; gap: 0; align-items: stretch;
+}
+.cascade-trad, .cascade-smart {
+  border: 1px solid var(--border); background: var(--bg3); overflow: hidden;
+}
+.cascade-header {
+  padding: 14px 20px;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+.cascade-trad .cascade-header { background: rgba(239,68,68,0.08); border-bottom: 1px solid rgba(239,68,68,0.2); color: var(--red); }
+.cascade-smart .cascade-header { background: rgba(34,197,94,0.08); border-bottom: 1px solid rgba(34,197,94,0.2); color: var(--green); }
+.cascade-body { padding: 20px; }
+.alarm-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; margin-bottom: 4px;
+  background: var(--bg4); border-left: 3px solid;
+  font-family: var(--mono); font-size: 10px; line-height: 1.5;
+}
+.alarm-row.crit { border-color: var(--red); }
+.alarm-row.high { border-color: var(--yellow); }
+.alarm-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.alarm-dot.crit { background: var(--red); }
+.alarm-dot.high { background: var(--yellow); }
+.alarm-code { color: var(--text2); }
+.alarm-val { color: var(--text); font-weight: 700; margin-left: auto; }
+.cascade-arrow {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--accent2); flex-direction: column; gap: 8px;
+}
+.cascade-arrow span { font-family: var(--mono); font-size: 9px; color: var(--text3); text-align: center; }
+.smart-incident {
+  background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.2);
+  padding: 16px; margin: 0 20px 20px;
+}
+.incident-title {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--green); margin-bottom: 8px;
+  display: flex; justify-content: space-between;
+}
+.incident-score {
+  background: var(--red); color: white;
+  padding: 2px 8px; font-size: 10px;
+}
+.incident-tags { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+.tag {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  padding: 2px 8px; background: var(--bg4); color: var(--text2);
+  border: 1px solid var(--border2);
+}
+.incident-narration {
+  font-size: 12px; color: var(--text); line-height: 1.6;
+  border-left: 2px solid var(--green); padding-left: 12px; margin-top: 10px;
+}
+
+/* ── LIVE DEMO ── */
+.demo-section {
+  padding: 80px 40px;
+  border-top: 1px solid var(--border);
+}
+.demo-container { max-width: 1280px; margin: 0 auto; }
+
+/* Scenario Controls */
+.scenario-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; background: var(--bg2);
+  border: 1px solid var(--border); margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.scenario-label {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin-right: 4px;
+}
+.scenario-btn {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  padding: 8px 18px; background: var(--bg4);
+  border: 1px solid var(--border2); color: var(--text2);
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em;
+}
+.scenario-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.scenario-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+.scenario-btn.reset { margin-left: auto; border-color: var(--green); color: var(--green); }
+.scenario-btn.reset:hover { background: var(--green); color: var(--bg); }
+
+/* Mode Toggle */
+.mode-toggle {
+  display: flex; align-items: center; gap: 0;
+  border: 1px solid var(--border2); overflow: hidden; align-self: center;
+}
+.mode-btn {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  padding: 8px 20px; background: var(--bg4);
+  border: none; color: var(--text3); cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.mode-btn.active-trad { background: rgba(239,68,68,0.15); color: var(--red); }
+.mode-btn.active-smart { background: rgba(34,197,94,0.15); color: var(--green); }
+
+/* HMI Layout */
+.hmi-layout {
+  display: grid; grid-template-columns: 280px 1fr 320px; gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  min-height: 580px;
+}
+
+/* Left Panel */
+.panel-left {
+  background: var(--bg2);
+  display: flex; flex-direction: column;
+}
+.panel-title {
+  padding: 12px 16px;
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: blink 1.5s infinite;
+}
+.sensor-list { flex: 1; overflow-y: auto; padding: 8px; }
+.sensor-item {
+  display: flex; flex-direction: column;
+  padding: 10px 12px; margin-bottom: 2px;
+  background: var(--bg3); border-left: 3px solid var(--border2);
+  transition: all 0.4s;
+}
+.sensor-item.normal { border-left-color: var(--green); }
+.sensor-item.warning { border-left-color: var(--yellow); background: var(--yellow-dim); }
+.sensor-item.critical { border-left-color: var(--red); background: var(--red-dim); }
+.sensor-name {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.sensor-value {
+  font-family: var(--mono); font-size: 18px; font-weight: 700;
+  color: var(--text); line-height: 1.2; margin: 2px 0;
+}
+.sensor-item.warning .sensor-value { color: var(--yellow); }
+.sensor-item.critical .sensor-value { color: var(--red); }
+.sensor-bar-bg {
+  height: 3px; background: var(--border2); border-radius: 2px; overflow: hidden;
+}
+.sensor-bar-fill {
+  height: 100%; background: var(--green); border-radius: 2px;
+  transition: width 0.8s ease, background 0.4s;
+}
+.sensor-item.warning .sensor-bar-fill { background: var(--yellow); }
+.sensor-item.critical .sensor-bar-fill { background: var(--red); }
+
+/* Center Panel */
+.panel-center { background: var(--bg2); display: flex; flex-direction: column; }
+.hmi-header {
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hmi-id { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: 0.1em; }
+.hmi-time { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.alarm-counter {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  padding: 3px 10px; letter-spacing: 0.08em;
+}
+.alarm-counter.none { background: var(--green-dim); color: var(--green); }
+.alarm-counter.active { background: var(--red-dim); color: var(--red); }
+
+/* Plant Diagram */
+.plant-diagram {
+  flex: 1; padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.plant-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.plant-node {
+  background: var(--bg3); border: 1px solid var(--border2);
+  padding: 12px 16px; flex: 1; text-align: center;
+  position: relative; transition: all 0.4s;
+}
+.plant-node.fault { border-color: var(--red); background: var(--red-dim); }
+.plant-node.warn { border-color: var(--yellow); background: var(--yellow-dim); }
+.plant-node.ok { border-color: rgba(34,197,94,0.3); }
+.plant-node-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em;
+}
+.plant-node-val {
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+  color: var(--text); margin-top: 2px;
+}
+.plant-node.fault .plant-node-val { color: var(--red); }
+.plant-node.warn .plant-node-val { color: var(--yellow); }
+.plant-node.ok .plant-node-val { color: var(--green); }
+.plant-node-status {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; margin-top: 2px; text-transform: uppercase;
+}
+.plant-connector { color: var(--border2); font-size: 14px; flex-shrink: 0; }
+.plant-connector.fault { color: var(--red); }
+
+/* Alarm Feeds */
+.alarm-feed { flex: 1; overflow-y: auto; padding: 8px; }
+.alarm-feed-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px; margin-bottom: 2px; background: var(--bg3);
+  border-left: 3px solid; transition: all 0.3s;
+}
+.alarm-feed-row.CRITICAL { border-left-color: var(--red); background: rgba(239,68,68,0.05); }
+.alarm-feed-row.HIGH { border-left-color: var(--yellow); background: rgba(245,158,11,0.05); }
+.alarm-feed-row.MEDIUM { border-left-color: var(--blue); }
+.alarm-feed-row.LOW { border-left-color: var(--border2); }
+.af-time { font-family: var(--mono); font-size: 9px; color: var(--text3); flex-shrink: 0; padding-top: 1px; }
+.af-content { flex: 1; }
+.af-code { font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--text2); }
+.af-desc { font-size: 11px; color: var(--text2); margin-top: 1px; line-height: 1.4; }
+.af-sev {
+  font-family: var(--mono); font-size: 8px; font-weight: 700;
+  padding: 2px 6px; flex-shrink: 0; letter-spacing: 0.08em;
+}
+.af-sev.CRITICAL { background: var(--red-dim); color: var(--red); }
+.af-sev.HIGH { background: var(--yellow-dim); color: var(--yellow); }
+
+/* Smart Incident Cards */
+.incident-feed { padding: 12px; flex: 1; overflow-y: auto; }
+.incident-card {
+  background: var(--bg3); border: 1px solid var(--border2);
+  margin-bottom: 10px; transition: all 0.3s;
+  animation: slideIn 0.5s ease;
+}
+@keyframes slideIn { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+.incident-card:hover { border-color: var(--border); }
+.incident-card-header {
+  padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border2);
+}
+.incident-sev-badge {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  padding: 3px 8px; letter-spacing: 0.08em; flex-shrink: 0;
+}
+.incident-sev-badge.CRITICAL { background: var(--red); color: white; }
+.incident-sev-badge.HIGH { background: var(--yellow); color: var(--bg); }
+.incident-card-title {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  color: var(--text); flex: 1;
+}
+.incident-score-badge {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  color: var(--accent2); background: var(--accent-glow);
+  padding: 2px 8px; border: 1px solid rgba(232,73,15,0.3);
+}
+.incident-card-body { padding: 14px; }
+.incident-tags2 { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 10px; }
+.tag2 {
+  font-family: var(--mono); font-size: 9px; font-weight: 600;
+  padding: 2px 8px; background: var(--bg4);
+  color: var(--text3); border: 1px solid var(--border2);
+}
+.incident-narration2 {
+  font-size: 12px; color: var(--text2); line-height: 1.6;
+  border-left: 2px solid var(--accent2); padding-left: 12px; margin-bottom: 12px;
+}
+.incident-expand-btn {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  color: var(--text3); background: none; border: 1px solid var(--border2);
+  padding: 5px 12px; cursor: pointer; transition: all 0.2s; width: 100%;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.incident-expand-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+/* Right Panel — Role View */
+.panel-right { background: var(--bg2); display: flex; flex-direction: column; }
+.role-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+}
+.role-tab {
+  flex: 1; padding: 10px 8px; text-align: center;
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3);
+  background: none; border: none; border-right: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+}
+.role-tab:last-child { border-right: none; }
+.role-tab.active { color: var(--accent2); background: rgba(232,73,15,0.08); border-bottom: 2px solid var(--accent2); }
+.role-content { flex: 1; overflow-y: auto; padding: 16px; }
+.role-view { display: none; }
+.role-view.active { display: block; }
+.role-headline {
+  font-family: var(--display); font-size: 14px; font-weight: 700;
+  color: var(--text); margin-bottom: 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.action-card {
+  background: var(--bg4); border: 1px solid var(--border2);
+  padding: 14px; margin-bottom: 8px; transition: border-color 0.2s;
+}
+.action-card:hover { border-color: var(--border); }
+.action-step {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  color: var(--accent2); letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.action-text { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.action-card.priority { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.04); }
+.action-card.priority .action-step { color: var(--red); }
+.role-no-incident {
+  text-align: center; padding: 40px 20px;
+  font-family: var(--mono); font-size: 11px; color: var(--text3);
+  letter-spacing: 0.08em;
+}
+.role-no-incident::before { content: '◎'; display: block; font-size: 24px; margin-bottom: 12px; color: var(--green); }
+
+/* AI narration box */
+.ai-narration-box {
+  margin: 12px;
+  background: rgba(6,182,212,0.05); border: 1px solid rgba(6,182,212,0.2);
+  padding: 14px;
+}
+.ai-label {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; color: var(--cyan); text-transform: uppercase;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.ai-label::before { content: '◈'; }
+.ai-text { font-size: 12px; color: var(--text2); line-height: 1.7; }
+
+/* ── HOW IT WORKS ── */
+.arch-section {
+  padding: 100px 60px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+.arch-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+  max-width: 960px; margin: 0 auto;
+}
+.arch-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  padding: 36px 28px; position: relative; overflow: hidden;
+}
+.arch-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+.arch-num {
+  font-family: var(--mono); font-size: 40px; font-weight: 800;
+  color: var(--border2); line-height: 1; margin-bottom: 20px;
+}
+.arch-card h3 {
+  font-family: var(--display); font-size: 18px; font-weight: 700;
+  margin-bottom: 12px; color: var(--text);
+}
+.arch-card p { font-size: 13px; color: var(--text2); line-height: 1.7; }
+.arch-detail {
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.arch-detail-item {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  padding: 3px 0; display: flex; gap: 8px;
+}
+.arch-detail-item::before { content: '→'; color: var(--accent2); flex-shrink: 0; }
+
+/* ── SCORING TABLE ── */
+.scoring-section {
+  padding: 100px 60px;
+  border-top: 1px solid var(--border);
+}
+.scoring-table {
+  max-width: 860px; margin: 0 auto;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.scoring-table-header {
+  display: grid; grid-template-columns: 2fr 1.5fr 2fr;
+  background: var(--bg2); border-bottom: 2px solid var(--accent);
+}
+.scoring-table-row {
+  display: grid; grid-template-columns: 2fr 1.5fr 2fr;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.scoring-table-row:hover { background: var(--bg2); }
+.scoring-table-row:last-child { border-bottom: none; }
+.st-cell {
+  padding: 14px 18px; font-size: 13px; color: var(--text2);
+  border-right: 1px solid var(--border);
+}
+.st-cell:last-child { border-right: none; }
+.st-cell.header {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3);
+}
+.st-cell.factor { font-weight: 600; color: var(--text); }
+.st-cell.score { font-family: var(--mono); font-weight: 700; color: var(--accent2); }
+
+/* ── COMPARISON TABLE ── */
+.compare-section {
+  padding: 100px 60px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+.compare-table {
+  max-width: 1000px; margin: 0 auto;
+  border: 1px solid var(--border); overflow: hidden;
+}
+.compare-header {
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  background: var(--bg3); border-bottom: 2px solid var(--border2);
+}
+.compare-row {
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.compare-row:hover { background: var(--bg3); }
+.compare-row:last-child { border-bottom: none; }
+.cc {
+  padding: 14px 18px; font-size: 12.5px;
+  border-right: 1px solid var(--border);
+}
+.cc:last-child { border-right: none; }
+.cc.head {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3);
+}
+.cc.dim { font-weight: 600; color: var(--text); font-size: 13px; }
+.cc.neg { color: var(--text3); }
+.cc.neg::before { content: '✗  '; color: var(--text3); }
+.cc.pos { color: var(--green); font-weight: 600; }
+.cc.pos::before { content: '✓  '; }
+.cc.highlight { background: rgba(34,197,94,0.04); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 40px 60px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg2);
+}
+.footer-brand {
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  color: var(--accent2); letter-spacing: 0.1em;
+}
+.footer-info { font-family: var(--mono); font-size: 10px; color: var(--text3); text-align: right; line-height: 1.8; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+  align-items: center; justify-content: center; padding: 40px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--bg2); border: 1px solid var(--border2);
+  max-width: 640px; width: 100%; max-height: 80vh; overflow-y: auto;
+}
+.modal-header {
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-title {
+  font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--text);
+}
+.modal-close {
+  font-family: var(--mono); font-size: 12px; color: var(--text3);
+  background: none; border: 1px solid var(--border2); padding: 4px 10px;
+  cursor: pointer; transition: all 0.2s;
+}
+.modal-close:hover { color: var(--red); border-color: var(--red); }
+.modal-body { padding: 24px; }
+.modal-section { margin-bottom: 24px; }
+.modal-section-title {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.15em; color: var(--accent2); text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.modal-row {
+  display: flex; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.modal-row-key { color: var(--text3); font-family: var(--mono); font-size: 11px; }
+.modal-row-val { color: var(--text); font-weight: 500; }
+.modal-row-val.red { color: var(--red); font-weight: 700; }
+.modal-row-val.green { color: var(--green); }
+.modal-action-list { display: flex; flex-direction: column; gap: 8px; }
+.modal-action {
+  background: var(--bg3); border: 1px solid var(--border2);
+  padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start;
+}
+.modal-action-num {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  color: var(--accent); flex-shrink: 0; padding-top: 1px;
+}
+.modal-action-text { font-size: 12.5px; color: var(--text2); line-height: 1.6; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Animations */
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} 50%{box-shadow:0 0 0 4px rgba(239,68,68,0.2)} }
+.pulsing { animation: pulse-red 2s infinite; }
+
+/* Responsive tweaks */
+@media (max-width: 1100px) {
+  .hmi-layout { grid-template-columns: 240px 1fr 280px; }
+}
+@media (max-width: 900px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 80px 24px 48px; }
+  .stats { flex-wrap: wrap; }
+  .stat { max-width: none; }
+  .problem-section, .cascade-section, .demo-section, .arch-section, .scoring-section, .compare-section { padding: 60px 24px; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .arch-grid { grid-template-columns: 1fr; }
+  .hmi-layout { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+  .panel-left { max-height: 240px; }
+  .cascade-demo { grid-template-columns: 1fr; }
+  .cascade-arrow { flex-direction: row; justify-content: center; transform: rotate(90deg); }
+  footer { flex-direction: column; gap: 16px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">OPERATORAI</div>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#demo">Live Demo</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#comparison">Comparison</a>
+  </div>
+  <div class="nav-badge">ABB Accelerator 2026</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Theme 1 · Next-Gen Control System Interface · Water Treatment Plant</div>
+    <h1>When operators<br>can't see <span>what matters</span>,<br>systems fail.</h1>
+    <p class="hero-sub">OperatorAI transforms alarm floods into calm, guided, role-specific action — using AI narration to tell operators what to do before it becomes a crisis.</p>
+    <div class="hero-cta">
+      <a href="#demo" class="btn-primary">Launch Live Demo</a>
+      <a href="#problem" class="btn-secondary">Understand the Problem</a>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val">600+</div>
+        <div class="stat-label">Alarms/hr in a flood</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">$2.1B</div>
+        <div class="stat-label">Texas City cost, 2005</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">≤6</div>
+        <div class="stat-label">ISA-18.2 target/hr</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">15</div>
+        <div class="stat-label">Deaths, one alarm failure</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem-section" id="problem">
+  <div class="section-header">
+    <span class="section-tag">01 / The Problem</span>
+    <h2>Traditional HMIs are built<br>for engineers, not operators.</h2>
+    <p class="section-desc">Every major industrial disaster of the past 40 years shares one root cause: operators could not distinguish signal from noise.</p>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <span class="problem-icon">ISSUE-01</span>
+      <h3>Alarm Flooding</h3>
+      <p>One pump failure triggers 4–8 downstream alarms shown as completely unrelated events. Operators see chaos, not cause. ISA-18.2 defines anything above 30 alarms/hour as a flood — traditional HMIs routinely hit 600+.</p>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">ISSUE-02</span>
+      <h3>No Role Separation</h3>
+      <p>The Operator, Maintenance Engineer, and Supervisor all see the same screen. Three entirely different jobs, one useless data dump. None of them get the specific information they need to act.</p>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">ISSUE-03</span>
+      <h3>Code, No Language</h3>
+      <p>ALM-0042: P1_MOTOR_TEMP HIGH — 87.3°C — CRITICAL. What does an operator do with that? Traditional HMIs show raw alarm codes. They do not translate data into action. Operators must carry all context in their heads.</p>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">ISSUE-04</span>
+      <h3>Purely Reactive</h3>
+      <p>Traditional HMIs alert only after a threshold is crossed. By then the cascade has already started. There is no early warning based on trend direction. No predictive signal that something is about to fail.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CASCADE VIZ -->
+<section class="cascade-section">
+  <div class="section-header">
+    <span class="section-tag">01B / Cascade Effect</span>
+    <h2>One failure. Four alarms.<br>Zero context.</h2>
+    <p class="section-desc">How a single pump trip creates an alarm flood — and how OperatorAI handles it differently.</p>
+  </div>
+  <div class="cascade-demo">
+    <div class="cascade-trad">
+      <div class="cascade-header">✗ Traditional HMI — Raw Alarm List</div>
+      <div class="cascade-body">
+        <div class="alarm-row crit"><div class="alarm-dot crit"></div><div><div class="alarm-code">ALM-0042 · 14:32:07</div><div>P1_MOTOR_TEMP HIGH</div></div><div class="alarm-val">87.3°C ⚠</div></div>
+        <div class="alarm-row high"><div class="alarm-dot high"></div><div><div class="alarm-code">ALM-0088 · 14:32:47</div><div>FLOW_INLET LOW</div></div><div class="alarm-val">18 L/m</div></div>
+        <div class="alarm-row high"><div class="alarm-dot high"></div><div><div class="alarm-code">ALM-0103 · 14:33:12</div><div>TANK_INLET LEVEL LOW</div></div><div class="alarm-val">17%</div></div>
+        <div class="alarm-row crit"><div class="alarm-dot crit"></div><div><div class="alarm-code">ALM-0156 · 14:33:30</div><div>PRESSURE LOW</div></div><div class="alarm-val">0.7 bar</div></div>
+        <div style="padding:12px;font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;margin-top:8px;">4 unlinked alarms. No grouping. No cause. No action.</div>
+      </div>
+    </div>
+    <div class="cascade-arrow">
+      <span style="font-size:22px;color:var(--accent2)">→</span>
+      <span>OperatorAI</span>
+    </div>
+    <div class="cascade-smart">
+      <div class="cascade-header">✓ Smart HMI — Incident Grouped</div>
+      <div class="cascade-body">
+        <div class="smart-incident">
+          <div class="incident-title">
+            <span>🔴 Pump P1 Cascade Failure</span>
+            <span class="incident-score" style="background:var(--red);color:white;padding:2px 8px;font-size:10px;font-family:var(--mono)">SCORE: 91</span>
+          </div>
+          <div class="incident-tags">
+            <span class="tag">P1_MOTOR_TEMP</span>
+            <span class="tag">FLOW_INLET</span>
+            <span class="tag">TANK_LEVEL</span>
+            <span class="tag">PRESSURE</span>
+          </div>
+          <div class="incident-narration">"Critical: Pump P1 motor overtemp at 14:32 triggered cascading failures across flow, tank level, and pressure. Root cause: P1 trip. Start backup pump P2. ETA to critical tank level: 8 minutes."</div>
+        </div>
+        <div style="padding:0 20px 12px;font-family:var(--mono);font-size:10px;color:var(--green)">4 alarms → 1 incident · Root cause identified · Action given</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE DEMO -->
+<section class="demo-section" id="demo">
+  <div class="demo-container">
+    <div class="section-header" style="margin-bottom:32px">
+      <span class="section-tag">02 / Live Demo</span>
+      <h2>Watch the transformation.</h2>
+      <p class="section-desc">Trigger any of the 3 failure scenarios. Toggle between Traditional and Smart mode. This is the moment judges will remember.</p>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="scenario-bar">
+      <span class="scenario-label">Inject Failure:</span>
+      <button class="scenario-btn" id="btn-s1" onclick="triggerScenario('pump')">S1 · P1 Pump Failure</button>
+      <button class="scenario-btn" id="btn-s2" onclick="triggerScenario('valve')">S2 · Valve V1 Stuck</button>
+      <button class="scenario-btn" id="btn-s3" onclick="triggerScenario('power')">S3 · Power Spike</button>
+      <button class="scenario-btn reset" onclick="resetSystem()">⟳ Reset to Normal</button>
+      <div class="mode-toggle" style="margin-left:auto">
+        <button class="mode-btn" id="mode-trad" onclick="setMode('traditional')">Traditional</button>
+        <button class="mode-btn" id="mode-smart" onclick="setMode('smart')">Smart HMI</button>
+      </div>
+    </div>
+
+    <!-- HMI Interface -->
+    <div class="hmi-layout">
+      <!-- Left: Sensor Telemetry -->
+      <div class="panel-left">
+        <div class="panel-title">
+          <span>Live Telemetry</span>
+          <div class="live-dot"></div>
+        </div>
+        <div class="sensor-list" id="sensorList"></div>
+      </div>
+
+      <!-- Center: Plant + Alarm Feed -->
+      <div class="panel-center">
+        <div class="hmi-header">
+          <span class="hmi-id">WATER_TREATMENT_PLANT_A</span>
+          <span class="hmi-time" id="hmiTime">14:32:07</span>
+          <span class="alarm-counter none" id="alarmCounter">● NORMAL</span>
+        </div>
+
+        <!-- Plant Diagram -->
+        <div class="plant-diagram" id="plantDiagram">
+          <div class="plant-row">
+            <div class="plant-node ok" id="pn-source">
+              <div class="plant-node-label">Water Source</div>
+              <div class="plant-node-val" id="pv-flow">—</div>
+              <div class="plant-node-status" style="color:var(--green)">SUPPLY OK</div>
+            </div>
+            <div class="plant-connector" id="conn1">──▶</div>
+            <div class="plant-node ok" id="pn-p1">
+              <div class="plant-node-label">Pump P1 (Main)</div>
+              <div class="plant-node-val" id="pv-temp">65°C</div>
+              <div class="plant-node-status" id="ps-p1" style="color:var(--green)">RUNNING</div>
+            </div>
+            <div class="plant-connector" id="conn2">──▶</div>
+            <div class="plant-node ok" id="pn-tank">
+              <div class="plant-node-label">Inlet Tank</div>
+              <div class="plant-node-val" id="pv-tank">62%</div>
+              <div class="plant-node-status" id="ps-tank" style="color:var(--green)">NORMAL</div>
+            </div>
+          </div>
+          <div class="plant-row">
+            <div class="plant-node ok" id="pn-p2" style="max-width:200px">
+              <div class="plant-node-label">Pump P2 (Backup)</div>
+              <div class="plant-node-val" id="pv-p2">STANDBY</div>
+              <div class="plant-node-status" id="ps-p2" style="color:var(--text3)">STANDBY</div>
+            </div>
+            <div class="plant-connector">──</div>
+            <div class="plant-node ok" id="pn-valve">
+              <div class="plant-node-label">Valve V1</div>
+              <div class="plant-node-val" id="pv-valve">OPEN</div>
+              <div class="plant-node-status" id="ps-valve" style="color:var(--green)">NORMAL</div>
+            </div>
+            <div class="plant-connector">──▶</div>
+            <div class="plant-node ok" id="pn-press">
+              <div class="plant-node-label">System Pressure</div>
+              <div class="plant-node-val" id="pv-press">3.2 bar</div>
+              <div class="plant-node-status" id="ps-press" style="color:var(--green)">NORMAL</div>
+            </div>
+          </div>
+          <div class="plant-row">
+            <div class="plant-node ok" id="pn-power" style="max-width:200px">
+              <div class="plant-node-label">Power Load</div>
+              <div class="plant-node-val" id="pv-power">68%</div>
+              <div class="plant-node-status" id="ps-power" style="color:var(--green)">NORMAL</div>
+            </div>
+            <div class="plant-connector">──</div>
+            <div class="plant-node ok" id="pn-outlet">
+              <div class="plant-node-label">Outlet Tank</div>
+              <div class="plant-node-val" id="pv-outlet">74%</div>
+              <div class="plant-node-status" id="ps-outlet" style="color:var(--green)">NORMAL</div>
+            </div>
+            <div class="plant-connector">──▶</div>
+            <div class="plant-node ok" id="pn-city">
+              <div class="plant-node-label">City Supply</div>
+              <div class="plant-node-val">ACTIVE</div>
+              <div class="plant-node-status" style="color:var(--green)">DELIVERING</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alarm Feed (Traditional) / Incident Feed (Smart) -->
+        <div id="tradFeed" style="display:none;flex:1;flex-direction:column;border-top:1px solid var(--border)">
+          <div class="panel-title">
+            <span>Alarm Management — Raw Feed</span>
+            <span id="tradCount" style="color:var(--red);font-size:10px;font-family:var(--mono)">0 ACTIVE</span>
+          </div>
+          <div class="alarm-feed" id="alarmFeedList"></div>
+        </div>
+        <div id="smartFeed" style="display:none;flex:1;flex-direction:column;border-top:1px solid var(--border)">
+          <div class="panel-title">
+            <span>Incident Intelligence</span>
+            <span id="smartCount" style="color:var(--green);font-size:10px;font-family:var(--mono)">0 INCIDENTS</span>
+          </div>
+          <div class="incident-feed" id="incidentFeedList"></div>
+        </div>
+        <div id="normalFeed" style="flex:1;display:flex;align-items:center;justify-content:center;border-top:1px solid var(--border)">
+          <div style="text-align:center;font-family:var(--mono);font-size:11px;color:var(--text3)">
+            <div style="font-size:20px;color:var(--green);margin-bottom:8px">◎</div>
+            All systems operating within normal parameters<br>
+            <span style="font-size:9px;color:var(--border2)">Inject a failure scenario above to begin demonstration</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Role-based views -->
+      <div class="panel-right">
+        <div class="ai-narration-box" id="aiNarrationBox" style="display:none">
+          <div class="ai-label">AI Narration</div>
+          <div class="ai-text" id="aiNarrationText"></div>
+        </div>
+        <div class="role-tabs" id="roleTabs">
+          <button class="role-tab active" onclick="setRole('operator',this)">Operator</button>
+          <button class="role-tab" onclick="setRole('engineer',this)">Engineer</button>
+          <button class="role-tab" onclick="setRole('supervisor',this)">Supervisor</button>
+        </div>
+        <div class="role-content">
+          <div class="role-view active" id="role-operator">
+            <div class="role-no-incident" id="op-empty">No active incidents<br><span style="font-size:9px">All systems normal</span></div>
+            <div id="op-content" style="display:none"></div>
+          </div>
+          <div class="role-view" id="role-engineer">
+            <div class="role-no-incident" id="eng-empty">No active incidents<br><span style="font-size:9px">All systems normal</span></div>
+            <div id="eng-content" style="display:none"></div>
+          </div>
+          <div class="role-view" id="role-supervisor">
+            <div class="role-no-incident" id="sup-empty">No active incidents<br><span style="font-size:9px">All systems normal</span></div>
+            <div id="sup-content" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="arch-section" id="architecture">
+  <div class="section-header">
+    <span class="section-tag">03 / Architecture</span>
+    <h2>Three layers of intelligence.<br>Zero black boxes.</h2>
+    <p class="section-desc">Transparent, explainable, ISA-18.2 aligned. Every decision the system makes can be followed in real time.</p>
+  </div>
+  <div class="arch-grid">
+    <div class="arch-card">
+      <div class="arch-num">01</div>
+      <h3>Simulation Engine</h3>
+      <p>10 sensors, 3 failure scenarios, JavaScript timers with realistic propagation delays. A pump trip takes 40 seconds to cascade — exactly like a real plant.</p>
+      <div class="arch-detail">
+        <div class="arch-detail-item">10 physical sensors modeled</div>
+        <div class="arch-detail-item">3 failure scenario JSON files</div>
+        <div class="arch-detail-item">Realistic cascade propagation delays</div>
+        <div class="arch-detail-item">No hardware required</div>
+      </div>
+    </div>
+    <div class="arch-card">
+      <div class="arch-num">02</div>
+      <h3>Scoring Algorithm</h3>
+      <p>Rule-based incident scoring aligned with ISA-18.2. Severity level, cascade count, chattering detection, trend direction, urgency escalation. Fully explainable — no ML.</p>
+      <div class="arch-detail">
+        <div class="arch-detail-item">Alarm severity weighting</div>
+        <div class="arch-detail-item">Cascade chain detection</div>
+        <div class="arch-detail-item">Trend direction scoring</div>
+        <div class="arch-detail-item">Urgency escalation over time</div>
+      </div>
+    </div>
+    <div class="arch-card">
+      <div class="arch-num">03</div>
+      <h3>Role Engine + NLP</h3>
+      <p>Three dedicated role views — Operator, Engineer, Supervisor — each with contextually relevant guidance. NLP converts structured incident JSON into plain-English narration.</p>
+      <div class="arch-detail">
+        <div class="arch-detail-item">Role-specific action cards</div>
+        <div class="arch-detail-item">Plain-English AI narration</div>
+        <div class="arch-detail-item">Root cause inference</div>
+        <div class="arch-detail-item">Predictive trend warnings</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCORING TABLE -->
+<section class="scoring-section">
+  <div class="section-header">
+    <span class="section-tag">03B / Scoring Algorithm</span>
+    <h2>Every score has a reason.</h2>
+    <p class="section-desc">Explainability beats black-box accuracy in a 5-minute demo. Judges can follow every number.</p>
+  </div>
+  <div class="scoring-table">
+    <div class="scoring-table-header">
+      <div class="st-cell header">Factor</div>
+      <div class="st-cell header">Score Contribution</div>
+      <div class="st-cell header">Why It Matters</div>
+    </div>
+    <div class="scoring-table-row">
+      <div class="st-cell factor">Alarm severity level</div>
+      <div class="st-cell score">Critical +40 / High +25 / Med +10</div>
+      <div class="st-cell">Direct ISA-18.2 compliance — critical alarms demand immediate action</div>
+    </div>
+    <div class="scoring-table-row">
+      <div class="st-cell factor">Cascade count</div>
+      <div class="st-cell score">+8 per linked component</div>
+      <div class="st-cell">Detects root-cause relationships across unlinked alarm codes</div>
+    </div>
+    <div class="scoring-table-row">
+      <div class="st-cell factor">Chattering detection</div>
+      <div class="st-cell score">+15 if 3+ fires in 10 min</div>
+      <div class="st-cell">Automatically filters nuisance alarms from real incidents</div>
+    </div>
+    <div class="scoring-table-row">
+      <div class="st-cell factor">Trend direction</div>
+      <div class="st-cell score">+12 if worsening</div>
+      <div class="st-cell">Proactive — detects trajectory toward failure before threshold breach</div>
+    </div>
+    <div class="scoring-table-row">
+      <div class="st-cell factor">Time unacknowledged</div>
+      <div class="st-cell score">+5 every 2 minutes</div>
+      <div class="st-cell">Urgency escalation — ignored critical incidents escalate automatically</div>
+    </div>
+    <div class="scoring-table-row">
+      <div class="st-cell factor">Role relevance filter</div>
+      <div class="st-cell score">Show / hide per role</div>
+      <div class="st-cell">Reduces irrelevant noise — each role only sees what they can act on</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section class="compare-section" id="comparison">
+  <div class="section-header">
+    <span class="section-tag">04 / Comparison</span>
+    <h2>Not a better dashboard.<br>A paradigm shift.</h2>
+    <p class="section-desc">How OperatorAI compares to traditional and high-performance HMI systems on every dimension that matters.</p>
+  </div>
+  <div class="compare-table">
+    <div class="compare-header">
+      <div class="cc head">Dimension</div>
+      <div class="cc head">Traditional HMI</div>
+      <div class="cc head">HP-HMI (ISA-101)</div>
+      <div class="cc head">OperatorAI</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Visual Design</div>
+      <div class="cc neg">Colorful, cluttered P&IDs</div>
+      <div class="cc" style="color:var(--yellow)">Grey, minimal, priority-coded</div>
+      <div class="cc pos highlight">Clean cards with AI narration</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Alarm Handling</div>
+      <div class="cc neg">Raw list, time-sorted</div>
+      <div class="cc" style="color:var(--yellow)">Better prioritization, no grouping</div>
+      <div class="cc pos highlight">Grouped into incidents, scored</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Root Cause</div>
+      <div class="cc neg">None provided</div>
+      <div class="cc neg">None provided</div>
+      <div class="cc pos highlight">Inferred from cascade pattern</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Role Awareness</div>
+      <div class="cc neg">None</div>
+      <div class="cc neg">None</div>
+      <div class="cc pos highlight">3 dedicated role views</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Language</div>
+      <div class="cc neg">Alarm codes only</div>
+      <div class="cc neg">Alarm codes only</div>
+      <div class="cc pos highlight">Plain-English narration</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Action Guidance</div>
+      <div class="cc neg">None</div>
+      <div class="cc neg">None</div>
+      <div class="cc pos highlight">Role-specific next-step cards</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Predictive Capability</div>
+      <div class="cc neg">None</div>
+      <div class="cc neg">None</div>
+      <div class="cc pos highlight">Trend direction scoring</div>
+    </div>
+    <div class="compare-row">
+      <div class="cc dim">Standard Compliance</div>
+      <div class="cc neg">Minimal</div>
+      <div class="cc" style="color:var(--yellow)">ISA-101, ISA-18.2</div>
+      <div class="cc pos highlight">Extends both with AI layer</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">OPERATORAI</div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px">ABB Accelerator 2026 · Theme 1: Smart HMI</div>
+  </div>
+  <div class="footer-info">
+    CMR Engineering College, Hyderabad<br>
+    Bengaluru Finale · June 25, 2026<br>
+    Submission Deadline: May 20, 2026
+  </div>
+</footer>
+
+<!-- MODAL: Incident Detail -->
+<div class="modal-overlay" id="incidentModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Incident Detail</div>
+      <button class="modal-close" onclick="closeModal()">✕ Close</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────
+let currentMode = 'traditional';
+let currentScenario = null;
+let activeRole = 'operator';
+let alarmLog = [];
+let cascadeTimeout = null;
+
+// Sensor definitions
+const SENSORS = [
+  { id:'pump_p1', label:'Pump P1 State', unit:'', normal:'Running', normalNum:100, max:100 },
+  { id:'pump_p2', label:'Pump P2 (Backup)', unit:'', normal:'Standby', normalNum:10, max:100 },
+  { id:'motor_temp', label:'Motor Temp (P1)', unit:'°C', normal:'65°C', normalNum:65, max:100 },
+  { id:'flow_inlet', label:'Flow Rate (Inlet)', unit:'L/min', normal:'98 L/min', normalNum:98, max:120 },
+  { id:'tank_inlet', label:'Tank Level (Inlet)', unit:'%', normal:'62%', normalNum:62, max:100 },
+  { id:'tank_outlet', label:'Tank Level (Outlet)', unit:'%', normal:'74%', normalNum:74, max:100 },
+  { id:'pressure', label:'System Pressure', unit:' bar', normal:'3.2 bar', normalNum:3.2, max:5 },
+  { id:'valve_v1', label:'Valve V1 State', unit:'', normal:'Open', normalNum:100, max:100 },
+  { id:'power_load', label:'Power Load', unit:'%', normal:'68%', normalNum:68, max:100 },
+  { id:'valve_v2', label:'Valve V2 State', unit:'', normal:'Open', normalNum:95, max:100 },
+];
+
+// Scenario definitions
+const SCENARIOS = {
+  pump: {
+    name: 'P1 Pump Failure Cascade',
+    severity: 'CRITICAL',
+    score: 91,
+    description: 'Pump P1 motor overload and trip triggers cascading failures across flow, tank level, and system pressure.',
+    sensors: {
+      motor_temp: { value:'87°C', numVal:87, status:'critical' },
+      pump_p1:    { value:'TRIPPED', numVal:0, status:'critical' },
+      pump_p2:    { value:'NEEDED', numVal:30, status:'warning' },
+      flow_inlet: { value:'18 L/min', numVal:18, status:'critical' },
+      tank_inlet: { value:'17%', numVal:17, status:'critical' },
+      pressure:   { value:'0.7 bar', numVal:0.7, status:'critical' },
+    },
+    plant: {
+      'pn-p1': 'fault', 'ps-p1': { text:'TRIPPED', color:'var(--red)' }, 'pv-temp': '87°C',
+      'pn-tank': 'fault', 'ps-tank': { text:'LOW', color:'var(--red)' }, 'pv-tank': '17%',
+      'pn-press': 'fault', 'ps-press': { text:'LOW', color:'var(--red)' }, 'pv-press': '0.7 bar',
+      'pn-p2': 'warn', 'ps-p2': { text:'NEEDED', color:'var(--yellow)' }, 'pv-p2': 'NEEDED',
+      'pn-source': 'fault', 'pv-flow': '18 L/min', 'conn1': 'fault', 'conn2': 'fault',
+    },
+    alarms: [
+      { time:'14:32:07', code:'ALM-0042', desc:'P1 Motor Temperature High — 87.3°C exceeds 85°C threshold', sev:'CRITICAL' },
+      { time:'14:32:47', code:'ALM-0088', desc:'Inlet Flow Rate Low — 18 L/min below 40 L/min minimum', sev:'CRITICAL' },
+      { time:'14:33:12', code:'ALM-0103', desc:'Inlet Tank Level Low — 17% below 20% critical threshold', sev:'HIGH' },
+      { time:'14:33:30', code:'ALM-0156', desc:'System Pressure Low — 0.7 bar below 1 bar minimum', sev:'CRITICAL' },
+    ],
+    incident: {
+      tags: ['P1_MOTOR_TEMP','FLOW_INLET','TANK_INLET','PRESSURE','P2_STANDBY'],
+      narration: 'Critical: Pump P1 motor temperature reached 87°C at 14:32, triggering linked alarms on flow rate, inlet tank level, and system pressure. This is a single-root-cause cascade — P1 trip is the origin. Backup pump P2 is available and must be started immediately. ETA to critical tank depletion: 8 minutes.',
+      aiText: 'Pump P1 has tripped due to motor overtemperature. This single failure has cascaded into 4 linked alarms. Backup pump P2 is standing by. Without intervention, the inlet tank will fall below safe operating level in approximately 8 minutes.',
+    },
+    roles: {
+      operator: {
+        headline: 'Immediate Action Required — P1 Tripped',
+        actions: [
+          { step:'STEP 1 — PRIORITY', text:'Start backup pump P2 immediately. P1 has tripped due to motor overtemperature. P2 is in standby and ready. Tank level will reach critical in ~8 minutes without action.', priority: true },
+          { step:'STEP 2', text:'Confirm P2 is running and flow rate recovers above 40 L/min. Monitor inlet tank level — it should begin rising within 2 minutes of P2 start.' },
+          { step:'STEP 3', text:'Isolate Pump P1 after P2 is confirmed running. Do not attempt P1 restart — motor needs to cool below 65°C before any restart attempt.' },
+          { step:'MONITOR', text:'Watch system pressure recovery. It should return above 1 bar within 3 minutes of P2 starting. If pressure does not recover, escalate to supervisor.' },
+        ]
+      },
+      engineer: {
+        headline: 'Root Cause — P1 Mechanical Failure',
+        actions: [
+          { step:'ROOT CAUSE', text:'Motor temperature trend shows gradual rise over the last 6 hours before trip — from 65°C baseline to 87°C. This pattern indicates mechanical seal degradation or bearing wear rather than an electrical fault.' },
+          { step:'DIAGNOSIS', text:'Check P1 lubrication logs for the last 30 days. Inspect mechanical seal integrity. Check bearing temperature at last scheduled maintenance. Motor winding insulation may also be degraded if the seal failure caused coolant ingress.' },
+          { step:'SCHEDULE', text:'Schedule P1 maintenance within 4 hours. Parts required: mechanical seal assembly, bearing set. Estimated downtime: 6–8 hours. Coordinate with supervisor for planned P2 operation window.' },
+          { step:'TREND NOTE', text:'The 6-hour gradual temperature rise was detectable in historical data. Recommend establishing a temperature trend alert at 72°C (before the 85°C trip threshold) to provide earlier warning in future.' },
+        ]
+      },
+      supervisor: {
+        headline: 'Zone A Status — Production Impact Assessment',
+        actions: [
+          { step:'CURRENT STATUS', text:'P1 failure contained. P2 switchover in progress. No safety threshold has been breached. Zone A at risk if P2 fails to start — escalate to maintenance immediately if P2 does not confirm running within 2 minutes.' },
+          { step:'PRODUCTION IMPACT', text:'ETA to full flow recovery: 12 minutes assuming P2 starts normally. No immediate production loss if P2 switchover completes successfully. Zone B unaffected.' },
+          { step:'MAINTENANCE WINDOW', text:'P1 will require 6–8 hours offline for mechanical repair. Plan a maintenance window for next 4 hours. Notify shift manager and downstream supply chain of potential reduced capacity.' },
+          { step:'SAFETY NOTE', text:'No safety threshold breached at this time. Pressure is below operating minimum but within safe range. Monitor. If pressure drops below 0.5 bar, initiate emergency shutdown protocol.' },
+        ]
+      }
+    },
+    modalDetail: {
+      rootCause: 'P1 Motor — Mechanical Seal Degradation',
+      affectedComponents: 'P1 Motor, Inlet Flow, Tank Inlet, System Pressure',
+      cascadeChain: 'Motor Overtemp → P1 Trip → Flow Drop → Tank Drain → Pressure Loss',
+      timeToAction: '8 minutes to critical tank level',
+      safetyStatus: 'No safety breach — P2 available',
+    }
+  },
+  valve: {
+    name: 'Valve V1 Stuck Closed',
+    severity: 'HIGH',
+    score: 67,
+    description: 'Valve V1 has stuck in closed position, restricting flow through the primary treatment path.',
+    sensors: {
+      valve_v1:   { value:'STUCK', numVal:5, status:'critical' },
+      flow_inlet: { value:'32 L/min', numVal:32, status:'warning' },
+      pressure:   { value:'4.8 bar', numVal:4.8, status:'warning' },
+      tank_inlet: { value:'38%', numVal:38, status:'warning' },
+    },
+    plant: {
+      'pn-valve': 'fault', 'ps-valve': { text:'STUCK CLOSED', color:'var(--red)' }, 'pv-valve': 'STUCK',
+      'pn-source': 'warn', 'pv-flow': '32 L/min',
+      'pn-press': 'warn', 'ps-press': { text:'HIGH', color:'var(--yellow)' }, 'pv-press': '4.8 bar',
+      'pn-tank': 'warn', 'ps-tank': { text:'FALLING', color:'var(--yellow)' }, 'pv-tank': '38%',
+    },
+    alarms: [
+      { time:'14:41:02', code:'ALM-0211', desc:'Valve V1 Position Fault — stuck in closed position', sev:'HIGH' },
+      { time:'14:41:15', code:'ALM-0088', desc:'Inlet Flow Rate Low — 32 L/min below 40 L/min minimum', sev:'HIGH' },
+      { time:'14:41:45', code:'ALM-0301', desc:'System Pressure High — 4.8 bar above 4.5 bar operating limit', sev:'HIGH' },
+    ],
+    incident: {
+      tags: ['VALVE_V1_STUCK','FLOW_RESTRICTED','PRESSURE_HIGH'],
+      narration: 'High priority: Valve V1 has stuck in the closed position at 14:41, restricting inlet flow to 32 L/min and causing upstream pressure to build to 4.8 bar. Root cause: actuator or position sensor failure on V1. Flow bypass via V2 is available. Pressure relief should be monitored — if pressure reaches 5 bar, initiate relief protocol.',
+      aiText: 'Valve V1 is stuck closed, cutting flow by ~67% and building upstream pressure. This is a mechanical actuator issue — not a cascade from another failure. Flow can be re-routed through bypass Valve V2 while V1 is repaired.',
+    },
+    roles: {
+      operator: {
+        headline: 'Flow Restricted — Valve V1 Fault',
+        actions: [
+          { step:'STEP 1 — PRIORITY', text:'Open bypass Valve V2 to restore flow through the secondary treatment path. V2 is currently at 95% open — verify it is fully open.', priority: true },
+          { step:'STEP 2', text:'Attempt V1 manual override via local control panel. If V1 does not respond to open command within 60 seconds, it requires mechanical intervention — do not force.' },
+          { step:'STEP 3', text:'Monitor upstream pressure — currently 4.8 bar approaching 5 bar relief threshold. If pressure reaches 5 bar before V2 compensates, initiate pressure relief protocol.' },
+          { step:'MONITOR', text:'Confirm inlet flow recovers to above 60 L/min after V2 bypass is open. Inlet tank level currently at 38% — stable if flow recovers within 10 minutes.' },
+        ]
+      },
+      engineer: {
+        headline: 'V1 Actuator Fault Diagnosis',
+        actions: [
+          { step:'FAILURE MODE', text:'V1 is reporting a position fault — the valve is physically stuck or the actuator has failed. Check whether V1 position feedback matches the command signal. A feedback mismatch indicates a sensor fault; no movement on manual override indicates mechanical jam or actuator failure.' },
+          { step:'INSPECTION', text:'Inspect V1 actuator for power supply continuity. Check pneumatic supply pressure if V1 is pneumatically actuated. Check for debris or corrosion on the valve stem — common cause of stuck-closed faults in water treatment environments.' },
+          { step:'REPAIR ESTIMATE', text:'If actuator failure: replace actuator assembly — 2–3 hours. If mechanical jam: clean and free the valve stem — 1 hour. If position sensor: replace feedback sensor — 30 minutes. Parts should be available in maintenance inventory.' },
+        ]
+      },
+      supervisor: {
+        headline: 'V1 Bypass Active — No Production Impact',
+        actions: [
+          { step:'CURRENT STATUS', text:'V1 stuck closed. Bypass via V2 in progress. Flow recovery expected within 5 minutes. No production impact if bypass completes successfully. Pressure elevated but below relief threshold.' },
+          { step:'MAINTENANCE', text:'V1 repair estimated 1–3 hours depending on fault mode. Coordinate maintenance team. Bypass via V2 can sustain operations indefinitely — no urgency to rush repair, but schedule within current shift.' },
+          { step:'SAFETY NOTE', text:'Monitor upstream pressure closely. If pressure reaches 5.0 bar before bypass restores flow, initiate pressure relief per SOP-PR-03. Notify plant safety officer if relief is activated.' },
+        ]
+      }
+    },
+    modalDetail: {
+      rootCause: 'Valve V1 — Actuator / Mechanical Jam',
+      affectedComponents: 'V1 Valve, Inlet Flow Rate, Upstream Pressure',
+      cascadeChain: 'V1 Stuck Closed → Flow Drop → Pressure Build',
+      timeToAction: '~15 minutes to pressure relief threshold',
+      safetyStatus: 'Monitor pressure — 4.8 bar of 5.0 bar limit',
+    }
+  },
+  power: {
+    name: 'Power Spike — Overload',
+    severity: 'HIGH',
+    score: 58,
+    description: 'Power load has spiked above 95%, threatening motor protection trip on all running equipment.',
+    sensors: {
+      power_load: { value:'97%', numVal:97, status:'critical' },
+      motor_temp: { value:'71°C', numVal:71, status:'warning' },
+      pump_p1:    { value:'AT RISK', numVal:70, status:'warning' },
+    },
+    plant: {
+      'pn-power': 'fault', 'ps-power': { text:'OVERLOAD', color:'var(--red)' }, 'pv-power': '97%',
+      'pn-p1': 'warn', 'ps-p1': { text:'AT RISK', color:'var(--yellow)' }, 'pv-temp': '71°C',
+    },
+    alarms: [
+      { time:'14:55:10', code:'ALM-0500', desc:'Power Load Critical — 97% exceeds 95% maximum sustained load', sev:'HIGH' },
+      { time:'14:55:22', code:'ALM-0042', desc:'P1 Motor Temperature Rising — 71°C trending toward 85°C trip', sev:'HIGH' },
+    ],
+    incident: {
+      tags: ['POWER_OVERLOAD','P1_TEMP_RISING','MOTOR_PROTECTION_RISK'],
+      narration: 'High priority: Power load has reached 97% at 14:55, exceeding the 95% sustained maximum. P1 motor temperature is trending upward (71°C, rising). At current rate, motor protection will trip P1 in approximately 18 minutes. Reduce load or shed non-critical equipment immediately to prevent an unplanned pump trip.',
+      aiText: 'The plant is drawing 97% of available power. This is causing the P1 motor to heat up. If load is not reduced, P1 will trip on motor protection — causing the same cascade as the pump failure scenario. This is a preventable cascade if action is taken now.',
+    },
+    roles: {
+      operator: {
+        headline: 'Power Overload — Prevent Motor Trip',
+        actions: [
+          { step:'STEP 1 — PRIORITY', text:'Identify and shed non-critical electrical loads immediately. Check if any non-essential pumps, HVAC units, or auxiliary systems can be temporarily suspended to bring total load below 85%.', priority: true },
+          { step:'STEP 2', text:'Monitor P1 motor temperature trend — currently 71°C and rising. If temperature reaches 80°C before load reduction takes effect, prepare to start P2 and plan a controlled P1 shutdown before it trips.' },
+          { step:'STEP 3', text:'Do not start additional equipment until power load drops below 80%. Starting P2 while at 97% load will cause an immediate overload trip.' },
+          { step:'MONITOR', text:'Power load should begin dropping within 2 minutes of load shedding. If load does not drop below 90% after shedding, escalate to supervisor — possible external grid issue.' },
+        ]
+      },
+      engineer: {
+        headline: 'Power System Analysis',
+        actions: [
+          { step:'IMMEDIATE', text:'Check the power distribution board for any faults or failed power factor correction capacitors. A capacitor bank failure can cause apparent power to spike without a real increase in connected load.' },
+          { step:'INVESTIGATION', text:'Review 24-hour power load trend. A sudden spike to 97% suggests either a new large load was connected, or a gradual drift that has reached the threshold. Check maintenance logs for any recent equipment changes.' },
+          { step:'MOTOR REVIEW', text:'P1 motor temperature at 71°C is within range but trending. Confirm motor cooling system is functional — check cooling fan operation and air filter status on P1 motor housing.' },
+        ]
+      },
+      supervisor: {
+        headline: 'Power Overload — Controlled Load Reduction',
+        actions: [
+          { step:'RISK ASSESSMENT', text:'97% power load with rising P1 motor temperature. Risk: unplanned P1 trip in ~18 minutes if no action taken. This is preventable. Authorize load shedding of non-critical systems now.' },
+          { step:'AUTHORITY', text:'Authorize operator to shed non-critical loads immediately. If load cannot be reduced below 85% within 5 minutes, approve a controlled P1 shutdown to P2 switchover as a precautionary measure — controlled is always better than a trip.' },
+          { step:'ESCALATION', text:'If load spike has an external cause (grid fault, billing demand peak), notify the electrical utility and document the event. Trigger a post-incident power audit.' },
+        ]
+      }
+    },
+    modalDetail: {
+      rootCause: 'Power Distribution — Overload Condition',
+      affectedComponents: 'Power Load, P1 Motor Temperature',
+      cascadeChain: 'Power Overload → Motor Heat → Imminent P1 Trip',
+      timeToAction: '~18 minutes to motor protection trip',
+      safetyStatus: 'Preventable cascade — act now',
+    }
+  }
+};
+
+// ─── SENSOR DISPLAY ───────────────────────────────────────────────────
+function renderSensors(overrides = {}) {
+  const list = document.getElementById('sensorList');
+  list.innerHTML = '';
+  SENSORS.forEach(s => {
+    const ov = overrides[s.id];
+    const status = ov ? ov.status : 'normal';
+    const value = ov ? ov.value : s.normal;
+    const numVal = ov ? ov.numVal : s.normalNum;
+    const pct = Math.min(100, Math.round((numVal / s.max) * 100));
+    const div = document.createElement('div');
+    div.className = `sensor-item ${status}`;
+    div.innerHTML = `
+      <div class="sensor-name">${s.label}</div>
+      <div class="sensor-value">${value}</div>
+      <div class="sensor-bar-bg"><div class="sensor-bar-fill" style="width:${pct}%"></div></div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ─── PLANT DIAGRAM ────────────────────────────────────────────────────
+function updatePlant(overrides = {}) {
+  // Reset
+  ['pn-source','pn-p1','pn-p2','pn-tank','pn-press','pn-valve','pn-power','pn-outlet'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.className = 'plant-node ok';
+  });
+  document.getElementById('conn1').className = 'plant-connector';
+  document.getElementById('conn2').className = 'plant-connector';
+  document.getElementById('ps-p1').textContent = 'RUNNING';
+  document.getElementById('ps-p1').style.color = 'var(--green)';
+  document.getElementById('ps-p2').textContent = 'STANDBY';
+  document.getElementById('ps-p2').style.color = 'var(--text3)';
+  document.getElementById('ps-tank').textContent = 'NORMAL';
+  document.getElementById('ps-tank').style.color = 'var(--green)';
+  document.getElementById('ps-press').textContent = 'NORMAL';
+  document.getElementById('ps-press').style.color = 'var(--green)';
+  document.getElementById('ps-valve').textContent = 'NORMAL';
+  document.getElementById('ps-valve').style.color = 'var(--green)';
+  document.getElementById('ps-power').textContent = 'NORMAL';
+  document.getElementById('ps-power').style.color = 'var(--green)';
+  document.getElementById('pv-temp').textContent = '65°C';
+  document.getElementById('pv-tank').textContent = '62%';
+  document.getElementById('pv-press').textContent = '3.2 bar';
+  document.getElementById('pv-valve').textContent = 'OPEN';
+  document.getElementById('pv-p2').textContent = 'STANDBY';
+  document.getElementById('pv-power').textContent = '68%';
+  document.getElementById('pv-flow').textContent = '—';
+
+  Object.entries(overrides).forEach(([key, val]) => {
+    const el = document.getElementById(key);
+    if (!el) return;
+    if (typeof val === 'string') {
+      // class
+      el.className = key.startsWith('pn-') ? `plant-node ${val}` : 'plant-connector fault';
+      if (key === 'conn1' || key === 'conn2') el.className = 'plant-connector fault';
+    } else if (val && typeof val === 'object' && val.text) {
+      el.textContent = val.text;
+      if (val.color) el.style.color = val.color;
+    } else if (typeof val === 'string' && key.startsWith('pv-')) {
+      el.textContent = val;
+    }
+  });
+}
+
+// ─── ALARM FEED ───────────────────────────────────────────────────────
+function renderAlarmFeed(alarms) {
+  const list = document.getElementById('alarmFeedList');
+  list.innerHTML = '';
+  alarms.forEach(a => {
+    const div = document.createElement('div');
+    div.className = `alarm-feed-row ${a.sev}`;
+    div.innerHTML = `
+      <div class="af-time">${a.time}</div>
+      <div class="af-content">
+        <div class="af-code">${a.code}</div>
+        <div class="af-desc">${a.desc}</div>
+      </div>
+      <div class="af-sev ${a.sev}">${a.sev}</div>
+    `;
+    list.appendChild(div);
+  });
+  document.getElementById('tradCount').textContent = `${alarms.length} ACTIVE`;
+}
+
+// ─── INCIDENT FEED ────────────────────────────────────────────────────
+function renderIncidentFeed(scenario) {
+  const list = document.getElementById('incidentFeedList');
+  const sc = SCENARIOS[scenario];
+  list.innerHTML = '';
+  const card = document.createElement('div');
+  card.className = 'incident-card';
+  card.innerHTML = `
+    <div class="incident-card-header">
+      <div class="incident-sev-badge ${sc.severity}">${sc.severity}</div>
+      <div class="incident-card-title">${sc.name}</div>
+      <div class="incident-score-badge">SCORE: ${sc.score}</div>
+    </div>
+    <div class="incident-card-body">
+      <div class="incident-tags2">${sc.incident.tags.map(t=>`<span class="tag2">${t}</span>`).join('')}</div>
+      <div class="incident-narration2">${sc.incident.narration}</div>
+      <button class="incident-expand-btn" onclick="openModal('${scenario}')">▶ View Full Analysis & Action Plan</button>
+    </div>
+  `;
+  list.appendChild(card);
+  document.getElementById('smartCount').textContent = '1 INCIDENT';
+}
+
+// ─── ROLE VIEWS ───────────────────────────────────────────────────────
+function renderRoleViews(scenario) {
+  const sc = SCENARIOS[scenario];
+  ['operator','engineer','supervisor'].forEach(role => {
+    const data = sc.roles[role];
+    const content = document.getElementById(`${role.substring(0,2)}${role==='operator'?'op':role==='engineer'?'eng':'sup'}-content`.replace('op','op').replace('en','eng').replace('su','sup'));
+    const empty = document.getElementById(`${role.substring(0,2)}${role==='operator'?'op':role==='engineer'?'eng':'sup'}-empty`.replace('op','op').replace('en','eng').replace('su','sup'));
+
+    const contentEl = document.getElementById(role==='operator'?'op-content':role==='engineer'?'eng-content':'sup-content');
+    const emptyEl = document.getElementById(role==='operator'?'op-empty':role==='engineer'?'eng-empty':'sup-empty');
+
+    contentEl.style.display = 'block';
+    emptyEl.style.display = 'none';
+    contentEl.innerHTML = `
+      <div class="role-headline">${data.headline}</div>
+      ${data.actions.map(a=>`
+        <div class="action-card ${a.priority?'priority':''}">
+          <div class="action-step">${a.step}</div>
+          <div class="action-text">${a.text}</div>
+        </div>
+      `).join('')}
+    `;
+  });
+}
+
+function clearRoleViews() {
+  ['op','eng','sup'].forEach(r => {
+    const content = document.getElementById(`${r}-content`);
+    const empty = document.getElementById(`${r}-empty`);
+    if (content) { content.style.display = 'none'; content.innerHTML = ''; }
+    if (empty) empty.style.display = 'flex';
+  });
+}
+
+// ─── SCENARIO TRIGGER ─────────────────────────────────────────────────
+function triggerScenario(name) {
+  currentScenario = name;
+
+  // Update buttons
+  ['btn-s1','btn-s2','btn-s3'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const btnMap = { pump:'btn-s1', valve:'btn-s2', power:'btn-s3' };
+  document.getElementById(btnMap[name]).classList.add('active');
+
+  const sc = SCENARIOS[name];
+  // Update sensors
+  renderSensors(sc.sensors);
+  // Update plant
+  updatePlant(sc.plant);
+  // Update alarm counter
+  const counter = document.getElementById('alarmCounter');
+  counter.className = 'alarm-counter active';
+  counter.textContent = `⚠ ${sc.alarms.length} ACTIVE ALARMS`;
+
+  // Show appropriate feeds
+  showFeedsForMode();
+  // Render data
+  renderAlarmFeed(sc.alarms);
+  renderIncidentFeed(name);
+  renderRoleViews(name);
+
+  // AI narration
+  if (currentMode === 'smart') {
+    showAInarration(sc.incident.aiText);
+  }
+}
+
+function showFeedsForMode() {
+  if (!currentScenario) return;
+  const tradFeed = document.getElementById('tradFeed');
+  const smartFeed = document.getElementById('smartFeed');
+  const normalFeed = document.getElementById('normalFeed');
+  tradFeed.style.display = 'none';
+  smartFeed.style.display = 'none';
+  normalFeed.style.display = 'none';
+
+  if (currentMode === 'traditional') {
+    tradFeed.style.display = 'flex';
+  } else {
+    smartFeed.style.display = 'flex';
+  }
+}
+
+function showAInarration(text) {
+  const box = document.getElementById('aiNarrationBox');
+  const textEl = document.getElementById('aiNarrationText');
+  box.style.display = 'block';
+  textEl.textContent = '';
+  let i = 0;
+  const interval = setInterval(() => {
+    textEl.textContent += text[i] || '';
+    i++;
+    if (i >= text.length) clearInterval(interval);
+  }, 18);
+}
+
+function hideAInarration() {
+  document.getElementById('aiNarrationBox').style.display = 'none';
+}
+
+function resetSystem() {
+  currentScenario = null;
+  ['btn-s1','btn-s2','btn-s3'].forEach(id => document.getElementById(id).classList.remove('active'));
+  renderSensors({});
+  updatePlant({});
+  const counter = document.getElementById('alarmCounter');
+  counter.className = 'alarm-counter none';
+  counter.textContent = '● NORMAL';
+  document.getElementById('tradFeed').style.display = 'none';
+  document.getElementById('smartFeed').style.display = 'none';
+  document.getElementById('normalFeed').style.display = 'flex';
+  clearRoleViews();
+  hideAInarration();
+  document.getElementById('alarmFeedList').innerHTML = '';
+  document.getElementById('incidentFeedList').innerHTML = '';
+}
+
+// ─── MODE SWITCH ──────────────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  const tradBtn = document.getElementById('mode-trad');
+  const smartBtn = document.getElementById('mode-smart');
+  tradBtn.className = mode === 'traditional' ? 'mode-btn active-trad' : 'mode-btn';
+  smartBtn.className = mode === 'smart' ? 'mode-btn active-smart' : 'mode-btn';
+
+  if (currentScenario) {
+    showFeedsForMode();
+    if (mode === 'smart') {
+      showAInarration(SCENARIOS[currentScenario].incident.aiText);
+    } else {
+      hideAInarration();
+    }
+  }
+}
+
+// ─── ROLE SWITCH ──────────────────────────────────────────────────────
+function setRole(role, btn) {
+  activeRole = role;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.role-view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`role-${role}`).classList.add('active');
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────
+function openModal(scenario) {
+  const sc = SCENARIOS[scenario];
+  document.getElementById('modal-title').textContent = sc.name;
+  const detail = sc.modalDetail;
+  const roleData = sc.roles;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">Incident Summary</div>
+      <div class="modal-row"><div class="modal-row-key">Root Cause</div><div class="modal-row-val red">${detail.rootCause}</div></div>
+      <div class="modal-row"><div class="modal-row-key">Affected Components</div><div class="modal-row-val">${detail.affectedComponents}</div></div>
+      <div class="modal-row"><div class="modal-row-key">Cascade Chain</div><div class="modal-row-val">${detail.cascadeChain}</div></div>
+      <div class="modal-row"><div class="modal-row-key">Time to Action</div><div class="modal-row-val red">${detail.timeToAction}</div></div>
+      <div class="modal-row"><div class="modal-row-key">Safety Status</div><div class="modal-row-val green">${detail.safetyStatus}</div></div>
+      <div class="modal-row"><div class="modal-row-key">Incident Score</div><div class="modal-row-val red">${sc.score} / 100</div></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Operator Action Plan</div>
+      <div class="modal-action-list">
+        ${roleData.operator.actions.map((a,i)=>`
+          <div class="modal-action">
+            <div class="modal-action-num">${String(i+1).padStart(2,'0')}</div>
+            <div class="modal-action-text"><strong>${a.step}:</strong> ${a.text}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Engineer Diagnosis</div>
+      <div class="modal-action-list">
+        ${roleData.engineer.actions.map((a,i)=>`
+          <div class="modal-action">
+            <div class="modal-action-num">${String(i+1).padStart(2,'0')}</div>
+            <div class="modal-action-text"><strong>${a.step}:</strong> ${a.text}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('incidentModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('incidentModal').classList.remove('open');
+}
+document.getElementById('incidentModal').addEventListener('click', function(e) {
+  if(e.target === this) closeModal();
+});
+
+// ─── CLOCK ────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('hmiTime').textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── INIT ─────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  renderSensors({});
+  setMode('traditional');
+});
+</script>
+</body>
+</html>
